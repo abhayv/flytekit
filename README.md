@@ -110,6 +110,32 @@ my_lp = LaunchPlan.get_or_create(
 
 Notifications will be triggered when the workflow reaches the specified phases.
 
+### Slack Notification Task (Advanced)
+
+You can also send custom Slack notifications as part of your workflow logic using the `SlackNotificationTask` plugin:
+
+```python
+from flytekit.extras.slack.task import SlackNotificationTask
+from flytekit import workflow
+
+notify_slack = SlackNotificationTask(
+    name="notify-slack",
+    url="https://hooks.slack.com/services/your/webhook/url",
+    message="Workflow succeeded for run {inputs.run_id}",
+    dynamic_inputs={"run_id": str},
+    show_data=True,
+    show_url=True,
+    description="Notify Slack on workflow completion"
+)
+
+@workflow
+def my_wf(run_id: str):
+    # ... your workflow tasks ...
+    notify_slack(run_id=run_id)
+```
+
+This approach allows you to trigger Slack notifications at any point within your workflow, with fully dynamic message payloads.
+
 ## 📦 Resources
 - [Learn Flytekit by example](https://docs.flyte.org/en/latest/user_guide/quickstart_guide.html)
 - [Flytekit API documentation](https://docs.flyte.org/en/latest/api/flytekit/docs_index.html)
