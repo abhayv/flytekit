@@ -59,6 +59,57 @@ def my_workflow(x: int, y: int) -> int:
     return sum(x=square(z=x), y=square(z=y))
 ```
 
+---
+
+## 🔔 Workflow Notifications (Email, PagerDuty, Slack Webhook)
+
+Flyte supports sending notifications when workflows succeed, fail, or abort. You can configure notifications via Email, PagerDuty, or (NEW) directly to Slack channels with a webhook.
+
+### Email or PagerDuty Notifications
+
+```python
+from flytekit.core.notification import Email, PagerDuty
+from flytekit.models.core.execution import WorkflowExecutionPhase
+
+email_notif = Email(
+    phases=[WorkflowExecutionPhase.SUCCEEDED],
+    recipients_email=["your-team@email.com"]
+)
+pagerduty_notif = PagerDuty(
+    phases=[WorkflowExecutionPhase.FAILED],
+    recipients_email=["your-pagerduty@email.com"]
+)
+```
+
+### Slack Webhook Notifications
+
+To send workflow notifications directly to a Slack channel using a [Slack Incoming Webhook](https://api.slack.com/messaging/webhooks):
+
+```python
+from flytekit.core.notification_slack_webhook import SlackWebhookNotification
+from flytekit.models.core.execution import WorkflowExecutionPhase
+
+slack_notif = SlackWebhookNotification(
+    phases=[WorkflowExecutionPhase.SUCCEEDED, WorkflowExecutionPhase.FAILED],
+    webhook_url="https://hooks.slack.com/services/your/webhook/url",
+    message="Flyte workflow has completed with phase: {phase}",
+    channel="#your-channel"  # Optional: target channel, if your webhook supports it
+)
+```
+
+Then, add your notification(s) to your workflow's launch plan:
+
+```python
+from flytekit import LaunchPlan
+
+my_lp = LaunchPlan.get_or_create(
+    workflow=my_workflow,
+    notifications=[slack_notif, email_notif]
+)
+```
+
+Notifications will be triggered when the workflow reaches the specified phases.
+
 ## 📦 Resources
 - [Learn Flytekit by example](https://docs.flyte.org/en/latest/user_guide/quickstart_guide.html)
 - [Flytekit API documentation](https://docs.flyte.org/en/latest/api/flytekit/docs_index.html)
